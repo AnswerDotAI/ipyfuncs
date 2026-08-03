@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ipyfuncs"
+dynamic = ["version"]
+description = "Kernel-side InteractiveShell services for kernel clients"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "Apache-2.0"}
+authors = [{name = "Jeremy Howard", email = "github@jhoward.fastmail.fm"}]
+keywords = ['nbdev']
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+]
+dependencies = ['fastcore>=2.1.18', 'ipython']
+
+[project.urls]
+Repository = "https://github.com/AnswerDotAI/ipyfuncs"
+Documentation = "https://AnswerDotAI.github.io/ipyfuncs/"
+
+[project.entry-points.nbdev]
+ipyfuncs = "ipyfuncs._modidx:d"
+
+[tool.setuptools.dynamic]
+version = {attr = "ipyfuncs.__version__"}
+
+[tool.setuptools.packages.find]
+include = ["ipyfuncs"]
+
+[tool.nbdev]

@@ -1,0 +1,14 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "ipyfuncs"
+  site-url: "https://AnswerDotAI.github.io/ipyfuncs"
+  description: "Kernel-side InteractiveShell services for kernel clients"
+  repo-branch: main
+  repo-url: "https://github.com/AnswerDotAI/ipyfuncs"
+
+format-links:
+  - html
+  - format: commonmark
+    text: Markdown
