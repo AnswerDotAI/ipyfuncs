@@ -1,0 +1,62 @@
+[
+  {
+    "objectID": "core.html",
+    "href": "core.html",
+    "title": "core",
+    "section": "",
+    "text": "from fastcore.test import *\nfrom fastcore.utils import *\nfrom pprint import pprint\nfrom IPython.display import HTML",
+    "crumbs": [
+      "core"
+    ]
+  },
+  {
+    "objectID": "core.html#interactiveshell-helpers",
+    "href": "core.html#interactiveshell-helpers",
+    "title": "core",
+    "section": "InteractiveShell helpers",
+    "text": "InteractiveShell helpers\n\ns = \"Some long string that will be truncated\"\nprint(_safe_repr(s, max_len=20))\n\nSome long string tha…\n\n\n\no = dict(name=\"Example\", data=[1,2,3,4,5] * 5, nested=dict(a=1, b=2, c=[3, 4, 5] * 10))\nprint(_safe_repr(o, max_len=40))\n\n{'name': 'Example', 'data': [1, 2, 3, 4,…\n\n\n\nsource\n\nInteractiveShell.user_items\ndef user_items(\n    max_len:int=200, xtra_skip:tuple=()\n):\nGet user-defined vars & funcs from namespace.\n\n# ipy = get_ipython()\n# _vs,_fs = ipy.user_items()\n# pprint(_vs)\n# print('---')\n# pprint(_fs)\n\n\nsource\n\n\nInteractiveShell.ranked_complete\ndef ranked_complete(\n    code, line_no:NoneType=None, col_no:NoneType=None\n):\nCall self as a function.\n\nfrom random import random\n\n\nipy = get_ipython()\n\n\ndef range_ex(\n    a:str # some param\n):\n    \"some func docstring\"\n    ...\nipy.ranked_complete('rang')\n\n[{'text': 'range',\n  'type': 'class',\n  'signature': '',\n  'start': 0,\n  'end': 4,\n  'mod': None,\n  'rank': 5},\n {'text': 'range_ex',\n  'type': 'function',\n  'signature': '(a: str)',\n  'start': 0,\n  'end': 4,\n  'mod': '__main__',\n  'rank': 2},\n {'text': 'range_of',\n  'type': 'function',\n  'signature': '(a, b=None, step=None)',\n  'start': 0,\n  'end': 4,\n  'mod': 'fastcore.basics',\n  'rank': 5}]\n\n\n\nres = ipy.ranked_complete('a=\"foo\"\\na.', 2, 3)\nres[:2]\n\n[{'text': 'capitalize',\n  'type': 'function',\n  'signature': '() -&gt; LiteralString',\n  'start': 10,\n  'end': 10,\n  'mod': None,\n  'rank': 5},\n {'text': 'casefold',\n  'type': 'function',\n  'signature': '() -&gt; LiteralString',\n  'start': 10,\n  'end': 10,\n  'mod': None,\n  'rank': 5}]\n\n\n\nclass Foo:\n    def __dir__(self): return ['bar', 'baz', '_secret', 'quux']\n    bar = 42\n    baz = \"hello\"\n\nf = Foo()\n[o['text'] for o in ipy.ranked_complete('f.')]\n\n['bar', 'baz', 'quux']\n\n\n\nsource\n\n\nInteractiveShell.get_vars\ndef get_vars(\n    vs:list, literal:bool=True\n):\nGet variables from namespace.\n\nx, y, fp = 3, 4, open('./00_core.ipynb')\ndef add(a,b): return a+b\n\n\ntest_eq(ipy.get_vars(['x', 'y', 'fp']).values(), [x,y,str(fp)])\ntest_eq(ipy.get_vars(['x', 'y', 'fp'], False).values(), [str(x),str(y),str(fp)])\n\n\nsource\n\n\nInteractiveShell.eval_exprs\nasync def eval_exprs(\n    vs:list, literal:bool=True\n):\nEvaluate expressions in namespace.\n\nprint((await ipy.eval_exprs(['1/0']))['1/0'])\n\n&lt;error type=\"ZeroDivisionError\" desc=\"division by zero\"&gt;\nTraceback (most recent call last):\n  File \"/var/folders/51/b2_szf2945n072c0vj2cyty40000gn/T/ipymini_57881/194151691.py\", line 7, in eval_exprs\n    e = await maybe_await(eval(v, ns))\n                          ~~~~^^^^^^^\n  File \"&lt;string&gt;\", line 1, in &lt;module&gt;\nZeroDivisionError: division by zero\n&lt;/error&gt;\n\n\n\ntest_eq(await ipy.eval_exprs(['x', 'y']), {'x': 3, 'y': 4})\ntest_eq(await ipy.eval_exprs(['add(1,2)']), {'add(1,2)': 3})\ntest_eq(await ipy.eval_exprs(['x+y']), {'x+y': 7})\ntest_eq(await ipy.eval_exprs(['[x, y]']), {'[x, y]': [3, 4]})\ntest((await ipy.eval_exprs(['undefined_var']))['undefined_var'], \"NameError: name 'undefined_var' is not defined\", operator.contains)\n\n\nsource\n\n\nInteractiveShell.get_schemas\ndef get_schemas(\n    fs:list\n):\nGet schemas from namespace.\n\nipy.get_schemas(['range_ex'])\n\n{'range_ex': {'type': 'function',\n  'function': {'name': 'range_ex',\n   'description': 'some func docstring',\n   'parameters': {'type': 'object',\n    'properties': {'a': {'description': 'some param', 'type': 'string'}},\n    'required': ['a']}}}}\n\n\nErrors are passed back as strings:\n\ndef add(a:int,b:int): return a + b\nipy.get_schemas(['add'])\n\n{'add': '`add`: Docstring missing!.'}\n\n\n\nipy.get_schemas(['div'])\n\n{'div': '`div` not found. Did you run it?'}\n\n\nDotted names (like obj.method) are supported for getting schemas from object attributes:\n\nclass Calculator:\n    def add(self, a:int, b:int) -&gt; int:\n        \"Add two numbers\"\n        return a + b\n\ncalc = Calculator()\nipy.get_schemas(['calc.add'])\n\n{'calc.add': {'type': 'function',\n  'function': {'name': 'calc-add',\n   'description': 'Add two numbers\\n\\nReturns:\\n- type: integer',\n   'parameters': {'type': 'object',\n    'properties': {'a': {'description': '', 'type': 'integer'},\n     'b': {'description': '', 'type': 'integer'}},\n    'required': ['a', 'b']}}}}\n\n\n\n\nSignatures\n\nres = ipy._sig_jedi('truncstr(\"a\",', 1, 13)\nr = res[0]\ntest_eq(r['params'][r['idx']]['name'], 'maxlen')\nres\n\n[{'label': 'def truncstr',\n  'typ': 'function',\n  'mod': 'fastcore.xtras',\n  'doc': \"truncstr(s: str, maxlen: int, suf: str='…', space='', sizevar: str=None)\\n\\nTruncate `s` to length `maxlen`, adding suffix `suf` if truncated\",\n  'idx': 1,\n  'params': [{'name': 's', 'desc': 'param s: str'},\n   {'name': 'maxlen', 'desc': 'param maxlen: int'},\n   {'name': 'suf', 'desc': \"param suf: str='…'\"},\n   {'name': 'space', 'desc': \"param space=''\"},\n   {'name': 'sizevar', 'desc': 'param sizevar: str=None'}]}]\n\n\n\n_param_idx('print(1, 2, ', 12), _param_idx('print(foo(1,2), ', 16), _param_idx('print(\"a,b\", ', 13)\n\n(2, 1, 1)\n\n\n\ns = 'truncstr(\"a\",'\nres = ipy._sig_dyn(s, 1, len(s))\nr = res[0]\ntest_eq(r['params'][r['idx']]['name'], 'maxlen')\nres\n\n[{'label': 'truncstr',\n  'typ': 'function',\n  'mod': 'fastcore.xtras',\n  'doc': 'Truncate `s` to length `maxlen`, adding suffix `suf` if truncated',\n  'idx': 1,\n  'params': [{'name': 's', 'desc': 's: str'},\n   {'name': 'maxlen', 'desc': 'maxlen: int'},\n   {'name': 'suf', 'desc': \"suf: str = '…'\"},\n   {'name': 'space', 'desc': \"space=''\"},\n   {'name': 'sizevar', 'desc': 'sizevar: str = None'}]}]\n\n\n\nsource\n\n\nInteractiveShell.sig_help\ndef sig_help(\n    code, line_no:NoneType=None, col_no:NoneType=None\n):\nGet signature help for code at cursor position using dynamic analysis or jedi as a backup.\n\nclass _DynObj:\n    def __getattr__(self, name):\n        def _inner(x, y=1): ...\n        _inner.__name__ = name\n        return _inner\n\n_dyn = _DynObj()\n\n# Dynamic path: Jedi can't resolve __getattr__:\nres = ipy.sig_help('_dyn.foo(', 1, 10)\ntest_eq(res[0]['label'], '_dyn.foo')\ntest_eq(len(res[0]['params']), 2)\nres\n\n[{'label': '_dyn.foo',\n  'typ': 'function',\n  'mod': '__main__',\n  'doc': '',\n  'idx': 0,\n  'params': [{'name': 'x', 'desc': 'x'}, {'name': 'y', 'desc': 'y=1'}]}]\n\n\n\ntest_eq(ipy.sig_help('print(\"a\", ', line_no=1, col_no=11)[0]['idx'], 0)  # *args soaks the positional overflow",
+    "crumbs": [
+      "core"
+    ]
+  },
+  {
+    "objectID": "core.html#displaying-mime-data",
+    "href": "core.html#displaying-mime-data",
+    "title": "core",
+    "section": "Displaying MIME data",
+    "text": "Displaying MIME data\n\ncts = '#### A heading\\n\\nThis is **bold**.'\nmd_bundle = { 'text/markdown': cts }\nipy.display_pub.publish(data=md_bundle)\n\nA heading\nThis is bold.\n\n\n\nsource\n\nInteractiveShell.publish\ndef publish(\n    data:str='', subtype:str='plain', mimetype:str='text', meta:NoneType=None, update:bool=False, **kw\n):\nCall self as a function.\n\nipy.publish(cts, 'markdown', foo='bar')\n\nA heading\nThis is bold.\n\n\n\nipy.publish(HTML('&lt;b&gt;hi&lt;/b&gt; there'))\n\nhi there\n\n\n\nipy.publish({'text/plain':'hi there'})\n\nhi there",
+    "crumbs": [
+      "core"
+    ]
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "ipyfuncs",
+    "section": "",
+    "text": "Importing ipyfuncs patches InteractiveShell with services a kernel client can call remotely: user_items, get_vars, eval_exprs, get_schemas, publish, ranked_complete, and sig_help. There is no extension machinery to load – the import is the whole setup. It was built as the kernel-side half of conkernelclient’s _ipy_funcs battery, and needs only fastcore and ipython.",
+    "crumbs": [
+      "ipyfuncs"
+    ]
+  },
+  {
+    "objectID": "index.html#usage",
+    "href": "index.html#usage",
+    "title": "ipyfuncs",
+    "section": "Usage",
+    "text": "Usage\n\nInstallation\nInstall latest from pypi:\n$ pip install ipyfuncs",
+    "crumbs": [
+      "ipyfuncs"
+    ]
+  },
+  {
+    "objectID": "index.html#how-to-use",
+    "href": "index.html#how-to-use",
+    "title": "ipyfuncs",
+    "section": "How to use",
+    "text": "How to use\nImport the package, and the running shell gains the services:\n\nimport ipyfuncs\n_vs,_fs = get_ipython().user_items(max_len=15)\nlist(_fs)\n\n2",
+    "crumbs": [
+      "ipyfuncs"
+    ]
+  }
+]
